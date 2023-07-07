@@ -1,0 +1,21 @@
+method: random
+parameters:
+  parameter_set:
+    value: sweep 
+  batch_size:
+    values: [8, 16, 32]
+  hidden_layers1:
+    values: [50, 100, 200, 300, 400, 500, 600, 700, 800]
+  hidden_layers2:
+    values: [50, 100, 200, 300, 400, 500, 600, 700, 800]
+  learning_rate:
+    max: 0.1
+    min: 1.0e-4
+  dropout:
+    max: 0.5
+    min: 0.0
+early_terminate:
+  type: hyperband
+  s: 2
+  eta: 3
+  max_iter: 27

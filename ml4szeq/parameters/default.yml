@@ -1,0 +1,98 @@
+project: ml4szeq
+entity: jcgraciosa
+method: grid
+parameters:
+  parameter_set:
+    # desc: Just a nickname for the parameter set you're looking at
+    value: default
+  dataset:
+    # desc: The name of the subfolder in the data/ directory that contains the dataset you want to use (e.g. grd_samp_30)
+    value: lin_samp_50 # To keep record of which dataset you're using
+  target:
+    # desc: The label of the column containing our target variable (e.g. MW) in each csv file/our dataframe
+    value: MR_GCMT
+  exclude_file:
+    # desc: Added by JC. Exclude this file when preparing the data. When this is used, we train on all regions except k, then test it on k
+    value: "kur.csv"
+  protect_great:
+    # desc: Intended mainly when target = MW. Drops columns which are NA in any rows with great earthquakes. 
+    # Could remove a lot of info, but ensures great earthquakes are conserved! 
+    value: false
+  cat_scaling:
+    # desc: Scaling factor for categorical loss when combining losses
+    value: 1
+  regr_scaling:
+    # desc: Scaling factor for regression loss when combining losses
+    value: 0
+  use_k_fold:
+    # desc: Whether to use k-fold cross-validation or not
+    value: False
+  k_folds:
+    # desc: Number of k-fold labels you wish to use. Only functional if `use_kfold` is true
+    value: 5
+  use_SMOTE:
+    # desc: Whether to use SMOTE or not (will use `sampling_weights` to determine class balances)
+    value: false
+  use_random_sampling:
+    # desc: Whether to use random sampling from different classes (using `sampling_weights`)
+    value: false
+  epochs:
+    # desc: Number of epochs you wish to use in each training loop. Note this will be multiplied if you're using
+    # k-fold as well!
+    value: 120
+  batch_normalisation:
+    # desc: Whether to use batch normalisation or not
+    value: false
+  embeddings:
+    # desc: Size of our vectors used for embedding the regions in the model.
+    value: 0
+  label_smooth:
+    # desc: Whether to use label smoothing.
+    value: false
+  activation_function:
+    # desc: Name of activation function you wish model to use. This string is then parsed somewhere in the model
+    # to determine the corresponding python function used.
+    value: relu
+  batch_size:
+    # desc: Batch size to use when training
+    value: 16
+  dropout:
+    # desc: Proportion of elements in input tensor to randomly dropout when training.
+    value: 0.2
+  hidden_layers:
+    # desc: List of numbers of neurons you want in each hidden layer.
+    value:
+      - 500
+      - 100
+  learning_rate:
+    # desc: Base learning rate to use when training. May be changed by a scheduler.
+    value: 1.0e-2
+  weight_decay:
+    # desc: Weight decay to use when training.
+    value: 0
+  sampling_weights:
+    # desc: Random sampling weights for each target category, in ascending order of target magnitudes.
+    # Note that these do not need to sum to one; they are relative!
+    value:
+      - 0.5
+      - 0.5
+  mw_cats:
+    # desc: List of the bounds for each MW category. For example, category 0 would contain all MWs from 0-4.5,
+    # category 1 would contain all MWs from 4.5-7, etc. (for default values)
+    value:
+      - 0
+      - 0.29
+      - 0.40495495
+      - 1.00
+  kernel_size:
+    # desc: The 'kernel' we use when finding the spatial neighbours of points in our dataset. First element is
+    # the 'width' along the S-direction, the second element is the 'height' along the N-direction.
+    value:
+      - 1
+      - 1
+  categorical_output:
+    # desc: Whether to include categorical output in the model.
+    value: true
+  regression_output:
+    # desc: Whether to include regression output in the model.
+    value: false
