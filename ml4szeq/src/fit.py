@@ -409,8 +409,10 @@ class Fit:
             # Get required number of validation points from real data only!
             n_val = int(len(ds) * self.VALIDATION_FRAC)
             val_ids = rng.choice(real_indices, size=n_val, replace=False)
-            train_ids = df.drop(index=val_ids).index
-
+            train_ids = np.array(df.drop(index=val_ids).index) # must be converted to an array and not a series
+            
+            self.train_ids = train_ids
+            
             self.val_ids = val_ids
             return self.fit_aux(train_ids=train_ids, val_ids=val_ids)
 
@@ -426,8 +428,23 @@ class Fit:
         Returns a dictionary of the best accuracies achieved.
         """
         # Sample elements randomly from a given list of ids, no replacement.
-        train_subsampler = torch.utils.data.SubsetRandomSampler(train_ids)
-        val_subsampler = torch.utils.data.SubsetRandomSampler(val_ids)
+        # train_subsampler = torch.utils.data.SubsetRandomSampler(train_ids)
+        # val_subsampler = torch.utils.data.SubsetRandomSampler(val_ids)
+        
+        # Dec 5 2023 - have a weighted sampler for both the training and validation
+        target = torch.tensor(self.df["MW_CAT"].to_numpy())
+
+        # weighted sampler for training
+        class_sample_count = torch.tensor([(target[train_ids] == t).sum() for t in torch.unique(target, sorted=True)])
+        weight = 1./class_sample_count.float()
+        samples_weight = torch.tensor([weight[t] for t in target[train_ids]])
+        train_subsampler = torch.utils.data.WeightedRandomSampler(samples_weight, len(samples_weight))
+
+        # weighted sampler for validation
+        class_sample_count = torch.tensor([(target[val_ids] == t).sum() for t in torch.unique(target, sorted=True)])
+        weight = 1./class_sample_count.float()
+        samples_weight = torch.tensor([weight[t] for t in target[val_ids]])
+        val_subsampler = torch.utils.data.WeightedRandomSampler(samples_weight, len(samples_weight))
 
         # Convert Datasets into DataLoaders
         train_loader = torch.utils.data.DataLoader(
@@ -436,6 +453,18 @@ class Fit:
         val_loader = torch.utils.data.DataLoader(
             self.ds, batch_size=self.batch_size, sampler=val_subsampler
         )
+
+        # print("##### Weighing of the data: #####")
+        # for batch, ((x_cont, x_region), (cat_labels, cont_labels)) in enumerate(train_loader):
+    
+        #     # x_cont, x_region, cat_labels, cont_labels = (
+        #     #     x_cont.to(device),
+        #     #     x_region.to(device),
+        #     #     cat_labels.to(device),
+        #     #     cont_labels.to(device),
+        #     # )
+        #     print("batch index {}, 0/1: {}/{}".format(batch, np.array((cat_labels == 0)).sum(), np.array((cat_labels == 1)).sum()))
+        # print("##########")
 
         self.val_loader = val_loader
 
@@ -523,7 +552,8 @@ class Fit:
 
             # only save model when validation loss decreases
             if validation_metrics["comb_loss"] < curr_vloss: 
-                best_model_fpath = model_filepath
+                best_model_fpath = f"{add_fname}_{self.datetime}/epoch-{epoch}.pt"
+                best_epoch = epoch
                 torch.save(self.model.state_dict(), model_filepath)
                 curr_vloss = validation_metrics["comb_loss"] 
 
@@ -543,7 +573,9 @@ class Fit:
 
         self.fit_folder = fit_folder
         #best_metrics = {"best_accuracy": all_accuracies.max(), "best_f1": all_f1s.max()}
-        best_metrics = {"best_val_loss": self.val_loss.min()}
+        best_metrics = {"best_val_loss": self.val_loss.min(),
+                        "model_dir": str(best_model_fpath),
+                        "best_epoch": best_epoch}
         if self.use_wandb:
             wandb.log(best_metrics)
 

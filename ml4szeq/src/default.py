@@ -85,6 +85,8 @@ EXCLUDE_FOR_INPUT = [
     "^EGR_UM_DG_",
     "^EGR_UM_UP_",
     "^EGR_BG_DG_",
+    "BGR_UP_AVE", # added Nov 2023
+    "BGR_UP_STD", # added Nov 2023
     "_SKW$",
     "_MIN$",
     "_MAX$",
@@ -98,7 +100,7 @@ EXCLUDE_FOR_INPUT = EXCLUDE_FOR_INPUT
 ROOT_DIRECTORY = Path(get_config("ROOT_DIRECTORY", Path.cwd()))
 # Directory in which we store all of our output files/sub-directories.
 ROOT_OUTPUT_DIRECTORY = ROOT_DIRECTORY / "out"
-MODELS_DIRECTORY = ROOT_OUTPUT_DIRECTORY / "models/phys_transition/sum" # always use scenario3
+MODELS_DIRECTORY = ROOT_OUTPUT_DIRECTORY / "models/combine-all" # always use scenario3
 PREDICTIONS_DIRECTORY = ROOT_OUTPUT_DIRECTORY / "predictions"
 HEAT_MAPS_DIRECTORY = ROOT_OUTPUT_DIRECTORY / "heat_maps"
 

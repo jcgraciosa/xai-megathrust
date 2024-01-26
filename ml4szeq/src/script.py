@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[2]:
-
-
+# %%
 # To add a new cell, type '# %%'
 # To add a new markdown cell, type '# %% [markdown]'
 # %%
@@ -40,6 +35,32 @@ from utils import (convert_hyperparam_config_to_values, get_config,
 
 # %% GETTING HYPER-PARAMETERS
 config_override_file = get_config("PARAMETER_YAML_FILE", None)
+#config_overrid_file = sweep.yml
+print(config_override_file)
+
+# %%
+# argparse for script
+import argparse
+
+try:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-s', "--sep", type=int, required=True)
+    parser.add_argument('-n', "--reg", type=int, required=True)
+    args = parser.parse_args()
+
+    sep_dist        = args.sep
+    tr_all_region_N = args.reg
+except: 
+    sep_dist        = 0
+    tr_all_region_N = 0
+
+# %%
+# additional parameters 
+
+do_tr_all_region = True # set to True if running this test
+tr_half_use = None # not using tr_half_use
+
+# %%
 hyperparam_config = get_full_hyperparam_config(config_override_file=config_override_file)
 print(
     "--- Hyperparamepters/metadata set as follows (may be altered later if using EXISTING wandb sweep):"
@@ -47,17 +68,11 @@ print(
 pprint(hyperparam_config)
 params, _ = convert_hyperparam_config_to_values(hyperparam_config)
 
-
-# In[3]:
-
-
+# %%
 num_train = 1
 random.seed(43) # set the random seed 
 
-
-# In[4]:
-
-
+# %%
 # %% PREPROCESSING - OR LOADING ALREADY PREPROCESSED - DATA
 data_suffix = params.get("dataset", "16k")  # which dataset you want as input
 data_folder = default.ROOT_DATA_DIRECTORY / data_suffix
@@ -80,9 +95,18 @@ for i in range(num_train):
         rand_seed = None, # for sampling with replacement 
         kernel_size=params["kernel_size"],
         use_cache=use_cache,
-        protect_great=params["protect_great"]
+        protect_great=params["protect_great"],
+        rd_exclude = False,
+        tr_half_use = tr_half_use,
+        sep_dist = sep_dist,
+        tr_all_region = True if do_tr_all_region else None,
+         tr_all_region_N = tr_all_region_N
     )
     print("Finished preprocessing! Number of features: ", len(preprocessor.inputs))
+    print("Size of training/validation data: ", preprocessor.dataframe.shape)
+    print(f"Class 0: {(preprocessor.dataframe.MW_CAT == 0).sum()}")
+    print(f"Class 1: {(preprocessor.dataframe.MW_CAT == 1).sum()}")
+    print(f"Class 2: {(preprocessor.dataframe.MW_CAT == 2).sum()}")
     
     #%% WANDB CONFIG
     # Determine if we want to use wandb to do sweeps/log this run
@@ -98,7 +122,7 @@ for i in range(num_train):
     )
 
 
-    #%%
+    #%% # this is useful for debugging stuff
     # fit = Fit(**full_train_kwargs, fit_on_init=False)
     # df = preprocessor.dataframe
     # ds = fit.ds
@@ -111,8 +135,8 @@ for i in range(num_train):
         print("Using Weights and Biases!")
         import wandb
         wandb.login() # is this really needed? 
-
-        # Get sweep id from config, otherwise create new sweep with specified params
+        hyperparam_config["name"] = f"model{tr_all_region_N}-sep{sep_dist}"
+        #Get sweep id from config, otherwise create new sweep with specified params
         sweep_id = get_config("WANDB_SWEEP_ID", None)
         sweep_id = (
             sweep_id
@@ -121,6 +145,7 @@ for i in range(num_train):
                 hyperparam_config, project="ml4szeq", entity="jcgraciosa"
             )
         )
+    
         wandb_func = partial(Fit, **full_train_kwargs)
         wandb.agent(
             sweep_id=sweep_id,
@@ -134,4 +159,12 @@ for i in range(num_train):
         # full_train(**full_train_kwargs)
         fit_obj = Fit(**full_train_kwargs)
         out_dict[i] = fit_obj.out_df
+
+
+# %%
+hyperparam_config
+
+# %%
+
+
 

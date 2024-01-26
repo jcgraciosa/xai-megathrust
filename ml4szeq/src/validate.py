@@ -36,7 +36,8 @@ def validation_loop(
 
     # Use these to keep track of predictions and labels across whole validation dataset
     #n_data = len(val_loader.dataset) # inflating number of class 0
-    n_data = len(val_loader.sampler.indices)
+    #n_data = len(val_loader.sampler.indices)   # using SubsetRandomSampler
+    n_data = val_loader.sampler.num_samples     # using WeightedRandomSampler 
     all_predicted = np.zeros(n_data)
     all_labels = np.zeros(n_data)
 
@@ -52,7 +53,7 @@ def validation_loop(
             cat_labels.to(device),
             cont_labels.to(device),
         )
-
+        #print(batch, cat_labels)
         # Get outputs and calculate loss.
         #cat, regr = model(x_cont, x_region)
         cat = model(x_cont)
@@ -88,7 +89,7 @@ def validation_loop(
 
     if model.categorical_output:
         cr = classification_report(
-            y_true=all_labels, y_pred=all_predicted, digits=3, output_dict=True
+            y_true=all_labels, y_pred=all_predicted, digits=3, output_dict=True, zero_division = 0
         )
         cm = confusion_matrix(y_true=all_labels, y_pred=all_predicted)
         # accuracy is a fine metric for *balanced* datasets
@@ -108,7 +109,7 @@ def validation_loop(
     
 
     # return loss value, accuracy
-    return {
+    out = {
         "cat_loss": total_cat_loss / n_data,
         #"regr_loss": total_regr_loss / n_data,
         "comb_loss": total_comb_loss / n_data,
@@ -116,3 +117,5 @@ def validation_loop(
         "f1": f1,
         "confusion_matrix": cm,
     }
+    #print(out)
+    return out

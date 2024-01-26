@@ -13,7 +13,7 @@ parameters:
     value: MR_GCMT
   exclude_file:
     # desc: Added by JC. Exclude this file when preparing the data. When this is used, we train on all regions except k, then test it on k
-    value: "kur.csv"
+    value: "xyz.csv"
   protect_great:
     # desc: Intended mainly when target = MW. Drops columns which are NA in any rows with great earthquakes. 
     # Could remove a lot of info, but ensures great earthquakes are conserved! 
@@ -74,15 +74,16 @@ parameters:
     # desc: Random sampling weights for each target category, in ascending order of target magnitudes.
     # Note that these do not need to sum to one; they are relative!
     value:
-      - 0.5
-      - 0.5
+      - 0.33
+      - 0.33
+      - 0.33
   mw_cats:
     # desc: List of the bounds for each MW category. For example, category 0 would contain all MWs from 0-4.5,
     # category 1 would contain all MWs from 4.5-7, etc. (for default values)
     value:
       - 0
-      - 0.29
-      - 0.40495495
+      - 0.33
+      - 0.65
       - 1.00
   kernel_size:
     # desc: The 'kernel' we use when finding the spatial neighbours of points in our dataset. First element is

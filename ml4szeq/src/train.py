@@ -87,7 +87,8 @@ def train_loop(
     # last batch may not be a full batch, so its loss would skew the batch-average
     # down, which isn't so useful.
     #size = len(train_loader.dataset)
-    size = len(train_loader.sampler.indices)
+    # size = len(train_loader.sampler.indices)  # using SubsetRandomSampler
+    size = train_loader.sampler.num_samples     # using WeightedRandomSampler 
    
     return {
         "cat_loss": total_cat_loss / size,

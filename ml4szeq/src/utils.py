@@ -20,6 +20,10 @@ def load_data(
     rd_exclude = False, # added by JC 
     use_cache=True,
     pickle_fp="preprocessed.pickle",
+    tr_half_use = None,
+    sep_dist = None,        
+    tr_all_region = None,   
+    tr_all_region_N = None,
     **kwargs
 ) -> Preprocessor:
     """
@@ -49,7 +53,18 @@ def load_data(
 
     # Either user did not want cache, or cache was not found/was empty
     preprocessed_data = Preprocessor(
-        data_folder=data_folder, exclude_file = exclude_file, quake_cat_list=cats, rand_seed = rand_seed, skip_drop_na = skip_drop_na, rd_exclude = rd_exclude, kernel_size=kernel_size, **kwargs
+                                        data_folder=data_folder, 
+                                        exclude_file = exclude_file, 
+                                        quake_cat_list=cats, 
+                                        rand_seed = rand_seed, 
+                                        skip_drop_na = skip_drop_na, 
+                                        rd_exclude = rd_exclude, 
+                                        kernel_size=kernel_size, 
+                                        tr_half_use=tr_half_use,
+                                        sep_dist = sep_dist,        
+                                        tr_all_region = tr_all_region,   
+                                        tr_all_region_N = tr_all_region_N, 
+                                        **kwargs
     )
 
     # Now pickle the new result and return
